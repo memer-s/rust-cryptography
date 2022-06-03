@@ -1,16 +1,18 @@
 use colored::Colorize;
+use std::io::Write;
 
 fn main() {
     let mut cool = open_file();
     let old = cool.clone();
 
-    let enc = [12,34,12,5,36];
+    let enc = [22];
 
     read_hex(&cool);
     for i in 0..enc.len() {
         encrypt_mut(&mut cool, enc[i]);
     }
-    read_hex(&cool);
+    compare(&cool, &old);
+    read_utf8(&cool);
     for i in 0..enc.len() {
         decrypt_mut(&mut cool, enc[enc.len()-1-i]);
     }
@@ -21,12 +23,7 @@ fn main() {
 
 fn encrypt_mut(v: &mut [u8], key: u8) {
     for i in 0..v.len() {
-        if v[i] as u16 + key as u16 > 255 {
-            v[i] = (v[i] as u16 + key as u16 - 255) as u8;
-        }
-        else {
-            v[i] = v[i] + key;
-        }
+        v[i] = ((v[i] as u16 + key as u16) % 256) as u8;
         v[i] ^= key;
     }
 }
@@ -45,6 +42,11 @@ fn decrypt_mut(v: &mut [u8], key: u8) {
 
 fn open_file() -> Vec<u8> {
     std::fs::read("hell").expect("Ecpi")
+}
+
+fn write_file(name: &str, buffer: &[u8]) {
+    let mut f = std::fs::File::create(name).expect(":");
+    f.write(buffer);
 }
 
 fn read_hex(v: &[u8]) {
